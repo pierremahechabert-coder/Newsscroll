@@ -10,8 +10,9 @@ const CATEGORY_GRADIENTS = {
 }
 const DEFAULT_GRADIENT = 'linear-gradient(135deg, #212121 0%, #424242 100%)'
 
-function getPhotoUrl(categorie, index) {
-  const seed = `${(categorie || 'news').toLowerCase()}-${index}`
+function getPhotoUrl(article, index) {
+  if (article.image) return article.image
+  const seed = `${(article.categorie || 'news').toLowerCase()}-${index}`
   return `https://picsum.photos/seed/${seed}/800/1200`
 }
 
@@ -31,7 +32,7 @@ export default function Card({ article, index, onSelect, onSwipeRight, isSaved, 
   const [swiping, setSwiping]     = useState(false)
 
   const fallbackGradient = CATEGORY_GRADIENTS[article.categorie] || DEFAULT_GRADIENT
-  const photoUrl = getPhotoUrl(article.categorie, index)
+  const photoUrl = getPhotoUrl(article, index)
   const firstTag = article.tags?.[0]
 
   function onTouchStart(e) {
