@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 const CATEGORY_GRADIENTS = {
   Politique: 'linear-gradient(135deg, #1a237e 0%, #283593 40%, #1565c0 100%)',
@@ -8,7 +8,6 @@ const CATEGORY_GRADIENTS = {
   Monde:     'linear-gradient(135deg, #e65100 0%, #ef6c00 40%, #f57c00 100%)',
   Sciences:  'linear-gradient(135deg, #006064 0%, #00838f 40%, #0097a7 100%)',
 }
-
 const DEFAULT_GRADIENT = 'linear-gradient(135deg, #212121 0%, #424242 100%)'
 
 function getPhotoUrl(categorie, index) {
@@ -18,16 +17,53 @@ function getPhotoUrl(categorie, index) {
 
 function formatDate(iso) {
   if (!iso) return ''
-  const d = new Date(iso)
-  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-export default function Card({ article, index, onSelect }) {
-  const [liked, setLiked] = useState(false)
-  const [bookmarked, setBookmarked] = useState(false)
-  const [imgError, setImgError] = useState(false)
+const SWIPE_THRESHOLD = 60
+
+export default function Card({ article, index, onSelect, onSwipeRight, isSaved, onToggleSave }) {
+  const [imgError, setImgError]   = useState(false)
+  const [liked, setLiked]         = useState(false)
+  // swipe state
+  const touchStart = useRef(null)
+  const [swipeDx, setSwipeDx]     = useState(0)
+  const [swiping, setSwiping]     = useState(false)
+
   const fallbackGradient = CATEGORY_GRADIENTS[article.categorie] || DEFAULT_GRADIENT
   const photoUrl = getPhotoUrl(article.categorie, index)
+  const firstTag = article.tags?.[0]
+
+  function onTouchStart(e) {
+    const t = e.touches[0]
+    touchStart.current = { x: t.clientX, y: t.clientY }
+    setSwipeDx(0)
+    setSwiping(false)
+  }
+
+  function onTouchMove(e) {
+    if (!touchStart.current) return
+    const dx = e.touches[0].clientX - touchStart.current.x
+    const dy = e.touches[0].clientY - touchStart.current.y
+    // Only track horizontal-dominant moves
+    if (Math.abs(dx) > Math.abs(dy) && dx > 10) {
+      setSwiping(true)
+      setSwipeDx(Math.min(dx, 120))
+    }
+  }
+
+  function onTouchEnd(e) {
+    if (!touchStart.current) return
+    const dx = e.changedTouches[0].clientX - touchStart.current.x
+    const dy = e.changedTouches[0].clientY - touchStart.current.y
+    touchStart.current = null
+    setSwipeDx(0)
+    setSwiping(false)
+
+    if (dx > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) && firstTag) {
+      onSwipeRight(firstTag)
+    }
+  }
 
   return (
     <div
@@ -42,8 +78,13 @@ export default function Card({ article, index, onSelect }) {
         justifyContent: 'flex-end',
         cursor: 'pointer',
         overflow: 'hidden',
+        transform: swiping ? `translateX(${swipeDx * 0.3}px)` : 'translateX(0)',
+        transition: swiping ? 'none' : 'transform 0.2s ease',
       }}
       onClick={() => onSelect(article)}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
     >
       {/* Background photo */}
       {!imgError && (
@@ -52,23 +93,39 @@ export default function Card({ article, index, onSelect }) {
           alt=""
           onError={() => setImgError(true)}
           style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center',
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center',
             pointerEvents: 'none',
           }}
         />
       )}
 
-      {/* Gradient overlay: transparent top → black bottom */}
+      {/* Gradient overlay */}
       <div style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.15) 70%, transparent 100%)',
         pointerEvents: 'none',
       }} />
+
+      {/* Swipe-right hint */}
+      {swiping && firstTag && (
+        <div style={{
+          position: 'absolute', top: '50%', right: 24,
+          transform: 'translateY(-50%)',
+          background: 'rgba(255,255,255,0.9)',
+          borderRadius: 16,
+          padding: '10px 16px',
+          fontSize: 13,
+          fontWeight: 700,
+          color: '#111',
+          opacity: Math.min(swipeDx / SWIPE_THRESHOLD, 1),
+          pointerEvents: 'none',
+          whiteSpace: 'nowrap',
+        }}>
+          #{firstTag} →
+        </div>
+      )}
 
       {/* Category badge */}
       <div style={{
@@ -78,56 +135,36 @@ export default function Card({ article, index, onSelect }) {
         border: '1px solid rgba(255,255,255,0.25)',
         borderRadius: 20,
         padding: '4px 12px',
-        fontSize: 12,
-        fontWeight: 600,
-        color: '#fff',
-        letterSpacing: '0.5px',
-        textTransform: 'uppercase',
+        fontSize: 12, fontWeight: 600, color: '#fff',
+        letterSpacing: '0.5px', textTransform: 'uppercase',
       }}>
         {article.categorie}
       </div>
 
       {/* Main content */}
       <div style={{ position: 'relative', padding: '0 16px 100px' }}>
-        {/* Source + date */}
         <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: 'rgba(255,255,255,0.6)',
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-          }}>AFP</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '1px', textTransform: 'uppercase' }}>AFP</span>
           <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>·</span>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
-            {formatDate(article.date)}
-          </span>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>{formatDate(article.date)}</span>
         </div>
 
-        {/* Title */}
         <h2 style={{
-          fontSize: 24,
-          fontWeight: 800,
-          color: '#fff',
-          lineHeight: 1.2,
-          letterSpacing: '-0.3px',
-          textTransform: 'uppercase',
-          marginBottom: 16,
+          fontSize: 24, fontWeight: 800, color: '#fff',
+          lineHeight: 1.2, letterSpacing: '-0.3px',
+          textTransform: 'uppercase', marginBottom: 16,
           textShadow: '0 2px 8px rgba(0,0,0,0.4)',
         }}>
           {article.titre}
         </h2>
 
-        {/* Tags */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {(article.tags || []).map((tag, i) => (
             <span key={i} style={{
               background: 'rgba(255,255,255,0.15)',
               border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: 20,
-              padding: '4px 10px',
-              fontSize: 12,
-              color: 'rgba(255,255,255,0.85)',
+              borderRadius: 20, padding: '4px 10px',
+              fontSize: 12, color: 'rgba(255,255,255,0.85)',
             }}>
               #{tag}
             </span>
@@ -138,56 +175,36 @@ export default function Card({ article, index, onSelect }) {
       {/* Right action bar */}
       <div
         style={{
-          position: 'absolute',
-          right: 12,
-          bottom: 110,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 20,
-          alignItems: 'center',
+          position: 'absolute', right: 12, bottom: 110,
+          display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center',
         }}
         onClick={e => e.stopPropagation()}
       >
-        <ActionBtn
-          icon={liked ? '❤️' : '🤍'}
-          label="12k"
-          onClick={() => setLiked(v => !v)}
-        />
+        <ActionBtn icon={liked ? '❤️' : '🤍'} label="12k" onClick={() => setLiked(v => !v)} />
         <ActionBtn icon="💬" label="348" onClick={() => {}} />
         <ActionBtn icon="↗️" label="Partager" onClick={() => {}} />
         <ActionBtn
-          icon={bookmarked ? '🔖' : '🏷️'}
+          icon={isSaved ? '🔖' : '🏷️'}
           label="Sauv."
-          onClick={() => setBookmarked(v => !v)}
+          onClick={() => onToggleSave(article)}
         />
       </div>
 
       {/* Streak badge */}
       <div style={{
-        position: 'absolute',
-        bottom: 20,
-        right: 12,
-        background: 'rgba(255,255,255,0.12)',
-        backdropFilter: 'blur(8px)',
+        position: 'absolute', bottom: 20, right: 12,
+        background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)',
         border: '1px solid rgba(255,255,255,0.2)',
-        borderRadius: 20,
-        padding: '5px 12px',
-        fontSize: 13,
-        fontWeight: 700,
-        color: '#fff',
+        borderRadius: 20, padding: '5px 12px',
+        fontSize: 13, fontWeight: 700, color: '#fff',
       }}>
         🔥 12j
       </div>
 
-      {/* Scroll hint on first card */}
       <div style={{
-        position: 'absolute',
-        bottom: 22,
-        left: '50%',
+        position: 'absolute', bottom: 22, left: '50%',
         transform: 'translateX(-50%)',
-        color: 'rgba(255,255,255,0.35)',
-        fontSize: 11,
-        letterSpacing: '0.5px',
+        color: 'rgba(255,255,255,0.35)', fontSize: 11, letterSpacing: '0.5px',
       }}>
         ↓ swipe
       </div>
@@ -197,19 +214,10 @@ export default function Card({ article, index, onSelect }) {
 
 function ActionBtn({ icon, label, onClick }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 3,
-        padding: 0,
-      }}
-    >
+    <button onClick={onClick} style={{
+      background: 'none', border: 'none', cursor: 'pointer',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: 0,
+    }}>
       <span style={{ fontSize: 26 }}>{icon}</span>
       <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{label}</span>
     </button>
