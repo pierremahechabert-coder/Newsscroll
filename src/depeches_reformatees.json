@@ -10,7 +10,8 @@
     ],
     "date": "2026-04-01T18:45:37Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/tracteur-agriculture/800/1200"
+    "image": "https://picsum.photos/seed/tracteur-agriculture/800/1200",
+    "sous_theme": "Crise agricole en France"
   },
   {
     "titre": "A la frontière libanaise, l'armée syrienne se renforce et découvre des tunnels attribués au Hezbollah",
@@ -23,7 +24,8 @@
     ],
     "date": "2026-04-01T18:38:32Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/military-tunnel/800/1200"
+    "image": "https://picsum.photos/seed/military-tunnel/800/1200",
+    "sous_theme": "Conflit au Liban"
   },
   {
     "titre": "L'ex-plumassier du Lido condamné à dix ans de prison pour viols et agressions sexuelles sur mineurs",
@@ -36,7 +38,8 @@
     ],
     "date": "2026-04-01T18:35:02Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/courthouse-justice/800/1200"
+    "image": "https://picsum.photos/seed/courthouse-justice/800/1200",
+    "sous_theme": "Affaires judiciaires"
   },
   {
     "titre": "Burundi: l'armée annonce 13 morts, tous civils, dans les explosions d'un dépôt de munitions, des \"dizaines\" de tués évoqués",
@@ -49,7 +52,8 @@
     ],
     "date": "2026-04-01T18:11:00Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/explosion-smoke/800/1200"
+    "image": "https://picsum.photos/seed/explosion-smoke/800/1200",
+    "sous_theme": "Guerre au Burundi"
   },
   {
     "titre": "300 tracteurs dans les rues de Vienne pour réclamer l'étiquetage de l'origine des produits",
@@ -62,7 +66,8 @@
     ],
     "date": "2026-04-01T18:08:46Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/tractors-protest-vienna/800/1200"
+    "image": "https://picsum.photos/seed/tractors-protest-vienna/800/1200",
+    "sous_theme": "Colère des agriculteurs"
   },
   {
     "titre": "Kaori Ito, directrice d'un théâtre de Strasbourg, va passer la main",
@@ -75,7 +80,8 @@
     ],
     "date": "2026-04-01T17:57:07Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/theatre-stage-dance/800/1200"
+    "image": "https://picsum.photos/seed/theatre-stage-dance/800/1200",
+    "sous_theme": "Théâtre et spectacle vivant"
   },
   {
     "titre": "Ardennes: après la mort de ses grands-parents, une adolescente en garde à vue avec son petit ami",
@@ -88,7 +94,8 @@
     ],
     "date": "2026-04-01T17:49:54Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/french-village-police/800/1200"
+    "image": "https://picsum.photos/seed/french-village-police/800/1200",
+    "sous_theme": "Faits divers"
   },
   {
     "titre": "A Téhéran, funérailles et \"résistance\" après un mois de guerre",
@@ -101,7 +108,8 @@
     ],
     "date": "2026-04-01T17:30:43Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/tehran-iran-crowd/800/1200"
+    "image": "https://picsum.photos/seed/tehran-iran-crowd/800/1200",
+    "sous_theme": "Tensions en Iran"
   },
   {
     "titre": "Novotel",
@@ -114,7 +122,8 @@
     ],
     "date": "2026-04-01T17:26:26Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/hotel-building/800/1200"
+    "image": "https://picsum.photos/seed/hotel-building/800/1200",
+    "sous_theme": "Industrie hôtelière"
   },
   {
     "titre": "Société générale",
@@ -127,7 +136,8 @@
     ],
     "date": "2026-04-01T17:23:25Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/bank-finance-building/800/1200"
+    "image": "https://picsum.photos/seed/bank-finance-building/800/1200",
+    "sous_theme": "Banques françaises"
   },
   {
     "titre": "Deux combattants de l'ancienne coalition paramilitaire du Hachd al-Chaabi ont été tués mercredi dans une frappe dans le nord-ouest de l'Irak, a indiqué à l'AFP une source au sein de cette alliance qui comprend des factions pro-iraniennes, en accusant les Etats-Unis et Israël.",
@@ -140,7 +150,8 @@
     ],
     "date": "2026-04-01T17:23:14Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/iraq-military-desert/800/1200"
+    "image": "https://picsum.photos/seed/iraq-military-desert/800/1200",
+    "sous_theme": "Conflit en Irak"
   },
   {
     "titre": "Mercure hotels",
@@ -153,6 +164,7 @@
     ],
     "date": "2026-04-01T17:22:00Z",
     "source": "AFP",
-    "image": "https://picsum.photos/seed/hotel-lobby/800/1200"
+    "image": "https://picsum.photos/seed/hotel-lobby/800/1200",
+    "sous_theme": "Industrie hôtelière"
   }
 ]

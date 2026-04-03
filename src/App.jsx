@@ -32,7 +32,7 @@ export default function App() {
 
   const [view, setView]                   = useState('feed')
   const [selectedArticle, setSelectedArticle] = useState(null)
-  const [selectedTag, setSelectedTag]     = useState(null)
+  const [selectedSousThem, setSelectedSousThem] = useState(null)
   const [remaining, setRemaining]         = useState(4)
 
   function saveProfile(p) {
@@ -55,8 +55,8 @@ export default function App() {
     setView('detail')
   }
 
-  function openSubtheme(tag) {
-    setSelectedTag(tag)
+  function openSubtheme(sousThem) {
+    setSelectedSousThem(sousThem)
     setView('subtheme')
   }
 
@@ -105,7 +105,7 @@ export default function App() {
       )}
       {view === 'subtheme' && (
         <SubthemePage
-          tag={selectedTag}
+          sousThem={selectedSousThem}
           articles={depeches}
           onSelect={openDetail}
           onBack={() => setView('feed')}

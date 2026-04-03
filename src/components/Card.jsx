@@ -10,6 +10,8 @@ const CATEGORY_GRADIENTS = {
 }
 const DEFAULT_GRADIENT = 'linear-gradient(135deg, #212121 0%, #424242 100%)'
 
+const SWIPE_THRESHOLD = 60
+
 function getPhotoUrl(article, index) {
   if (article.image) return article.image
   const seed = `${(article.categorie || 'news').toLowerCase()}-${index}`
@@ -21,51 +23,62 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-const SWIPE_THRESHOLD = 60
-
 export default function Card({ article, index, onSelect, onSwipeRight, isSaved, onToggleSave }) {
-  const [imgError, setImgError]   = useState(false)
-  const [liked, setLiked]         = useState(false)
-  // swipe state
-  const touchStart = useRef(null)
-  const [swipeDx, setSwipeDx]     = useState(0)
-  const [swiping, setSwiping]     = useState(false)
+  const [imgError, setImgError] = useState(false)
+  const [liked, setLiked]       = useState(false)
+  const [swipeDx, setSwipeDx]   = useState(0)
+  const [swiping, setSwiping]   = useState(false)
+
+  const touchStart   = useRef(null)
+  const swipeFired   = useRef(false)   // prevent click firing after swipe
 
   const fallbackGradient = CATEGORY_GRADIENTS[article.categorie] || DEFAULT_GRADIENT
-  const photoUrl = getPhotoUrl(article, index)
-  const firstTag = article.tags?.[0]
+  const photoUrl         = getPhotoUrl(article, index)
+  const sousThem         = article.sous_theme
 
-  function onTouchStart(e) {
-    const t = e.touches[0]
-    touchStart.current = { x: t.clientX, y: t.clientY }
+  /* ── touch handlers ───────────────────────────────────────────── */
+  function handleTouchStart(e) {
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    swipeFired.current = false
     setSwipeDx(0)
     setSwiping(false)
   }
 
-  function onTouchMove(e) {
+  function handleTouchMove(e) {
     if (!touchStart.current) return
     const dx = e.touches[0].clientX - touchStart.current.x
     const dy = e.touches[0].clientY - touchStart.current.y
-    // Only track horizontal-dominant moves
-    if (Math.abs(dx) > Math.abs(dy) && dx > 10) {
+    if (Math.abs(dx) > Math.abs(dy) && dx > 8) {
       setSwiping(true)
-      setSwipeDx(Math.min(dx, 120))
+      setSwipeDx(Math.min(dx, 130))
+    } else if (Math.abs(dy) > 10) {
+      // vertical scroll dominates — cancel swipe tracking
+      touchStart.current = null
+      setSwiping(false)
+      setSwipeDx(0)
     }
   }
 
-  function onTouchEnd(e) {
+  function handleTouchEnd(e) {
     if (!touchStart.current) return
     const dx = e.changedTouches[0].clientX - touchStart.current.x
     const dy = e.changedTouches[0].clientY - touchStart.current.y
     touchStart.current = null
-    setSwipeDx(0)
     setSwiping(false)
+    setSwipeDx(0)
 
-    if (dx > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) && firstTag) {
-      onSwipeRight(firstTag)
+    if (dx > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) && sousThem) {
+      swipeFired.current = true
+      onSwipeRight(sousThem)
     }
   }
 
+  function handleClick() {
+    if (swipeFired.current) { swipeFired.current = false; return }
+    onSelect(article)
+  }
+
+  /* ── render ───────────────────────────────────────────────────── */
   return (
     <div
       style={{
@@ -79,13 +92,14 @@ export default function Card({ article, index, onSelect, onSwipeRight, isSaved, 
         justifyContent: 'flex-end',
         cursor: 'pointer',
         overflow: 'hidden',
-        transform: swiping ? `translateX(${swipeDx * 0.3}px)` : 'translateX(0)',
+        touchAction: 'pan-y',
+        transform: swiping ? `translateX(${swipeDx * 0.28}px)` : 'translateX(0)',
         transition: swiping ? 'none' : 'transform 0.2s ease',
       }}
-      onClick={() => onSelect(article)}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
+      onClick={handleClick}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Background photo */}
       {!imgError && (
@@ -102,29 +116,28 @@ export default function Card({ article, index, onSelect, onSwipeRight, isSaved, 
         />
       )}
 
-      {/* Gradient overlay */}
+      {/* Dark gradient */}
       <div style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.15) 70%, transparent 100%)',
         pointerEvents: 'none',
       }} />
 
-      {/* Swipe-right hint */}
-      {swiping && firstTag && (
+      {/* Swipe-right preview badge */}
+      {swiping && sousThem && (
         <div style={{
-          position: 'absolute', top: '50%', right: 24,
+          position: 'absolute', top: '50%', right: 20,
           transform: 'translateY(-50%)',
-          background: 'rgba(255,255,255,0.9)',
-          borderRadius: 16,
+          background: '#fff',
+          borderRadius: 14,
           padding: '10px 16px',
-          fontSize: 13,
-          fontWeight: 700,
-          color: '#111',
+          fontSize: 13, fontWeight: 700, color: '#111',
           opacity: Math.min(swipeDx / SWIPE_THRESHOLD, 1),
           pointerEvents: 'none',
           whiteSpace: 'nowrap',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
         }}>
-          #{firstTag} →
+          {sousThem} →
         </div>
       )}
 
@@ -134,8 +147,7 @@ export default function Card({ article, index, onSelect, onSwipeRight, isSaved, 
         background: 'rgba(255,255,255,0.15)',
         backdropFilter: 'blur(8px)',
         border: '1px solid rgba(255,255,255,0.25)',
-        borderRadius: 20,
-        padding: '4px 12px',
+        borderRadius: 20, padding: '4px 12px',
         fontSize: 12, fontWeight: 600, color: '#fff',
         letterSpacing: '0.5px', textTransform: 'uppercase',
       }}>
@@ -143,23 +155,26 @@ export default function Card({ article, index, onSelect, onSwipeRight, isSaved, 
       </div>
 
       {/* Main content */}
-      <div style={{ position: 'relative', padding: '0 16px 100px' }}>
+      <div style={{ position: 'relative', padding: '0 70px 16px 16px' }}>
+        {/* Source + date */}
         <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '1px', textTransform: 'uppercase' }}>AFP</span>
           <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>·</span>
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>{formatDate(article.date)}</span>
         </div>
 
+        {/* Title */}
         <h2 style={{
           fontSize: 24, fontWeight: 800, color: '#fff',
           lineHeight: 1.2, letterSpacing: '-0.3px',
-          textTransform: 'uppercase', marginBottom: 16,
+          textTransform: 'uppercase', marginBottom: 14,
           textShadow: '0 2px 8px rgba(0,0,0,0.4)',
         }}>
           {article.titre}
         </h2>
 
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {/* Tags */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
           {(article.tags || []).map((tag, i) => (
             <span key={i} style={{
               background: 'rgba(255,255,255,0.15)',
@@ -171,12 +186,31 @@ export default function Card({ article, index, onSelect, onSwipeRight, isSaved, 
             </span>
           ))}
         </div>
+
+        {/* "Voir le thème" button — desktop fallback + visible hint */}
+        {sousThem && (
+          <button
+            onClick={e => { e.stopPropagation(); onSwipeRight(sousThem) }}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'rgba(255,255,255,0.12)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: 20, padding: '6px 14px',
+              fontSize: 12, fontWeight: 600, color: '#fff',
+              cursor: 'pointer',
+            }}
+          >
+            <span>{sousThem}</span>
+            <span style={{ fontSize: 10 }}>→</span>
+          </button>
+        )}
       </div>
 
       {/* Right action bar */}
       <div
         style={{
-          position: 'absolute', right: 12, bottom: 110,
+          position: 'absolute', right: 12, bottom: 100,
           display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center',
         }}
         onClick={e => e.stopPropagation()}
@@ -184,16 +218,12 @@ export default function Card({ article, index, onSelect, onSwipeRight, isSaved, 
         <ActionBtn icon={liked ? '❤️' : '🤍'} label="12k" onClick={() => setLiked(v => !v)} />
         <ActionBtn icon="💬" label="348" onClick={() => {}} />
         <ActionBtn icon="↗️" label="Partager" onClick={() => {}} />
-        <ActionBtn
-          icon={isSaved ? '🔖' : '🏷️'}
-          label="Sauv."
-          onClick={() => onToggleSave(article)}
-        />
+        <ActionBtn icon={isSaved ? '🔖' : '🏷️'} label="Sauv." onClick={() => onToggleSave(article)} />
       </div>
 
       {/* Streak badge */}
       <div style={{
-        position: 'absolute', bottom: 20, right: 12,
+        position: 'absolute', bottom: 16, right: 12,
         background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)',
         border: '1px solid rgba(255,255,255,0.2)',
         borderRadius: 20, padding: '5px 12px',
@@ -203,9 +233,10 @@ export default function Card({ article, index, onSelect, onSwipeRight, isSaved, 
       </div>
 
       <div style={{
-        position: 'absolute', bottom: 22, left: '50%',
+        position: 'absolute', bottom: 20, left: '50%',
         transform: 'translateX(-50%)',
-        color: 'rgba(255,255,255,0.35)', fontSize: 11, letterSpacing: '0.5px',
+        color: 'rgba(255,255,255,0.3)', fontSize: 11, letterSpacing: '0.5px',
+        whiteSpace: 'nowrap',
       }}>
         ↓ swipe
       </div>
