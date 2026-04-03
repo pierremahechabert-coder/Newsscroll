@@ -158,7 +158,7 @@ export default function Card({ article, index, onSelect, onSwipeRight, isSaved, 
       <div style={{ position: 'relative', padding: '0 70px 16px 16px' }}>
         {/* Source + date */}
         <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '1px', textTransform: 'uppercase' }}>AFP</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '1px', textTransform: 'uppercase' }}>{article.source || 'AFP'}</span>
           <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>·</span>
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>{formatDate(article.date)}</span>
         </div>
